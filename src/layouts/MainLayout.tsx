@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import GenreSidebar from "../components/GenreSidebar";
+import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 
 const MainLayout: React.FC = () => {
@@ -10,11 +10,11 @@ const MainLayout: React.FC = () => {
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 bg-gray-800 text-white transform ${
+        className={`fixed inset-y-0 left-0 z-40 bg-black text-white transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 md:translate-x-0 md:static md:w-1/5`}
       >
-        <GenreSidebar />
+        <Sidebar />
       </div>
 
       {/* Hamburger Icon */}

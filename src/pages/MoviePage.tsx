@@ -1,75 +1,93 @@
-import{ useState } from "react";
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import { RootState, AppDispatch } from "../store/store";
+import { setGenre } from "../store/slices/moviesSlice";
+import axiosInstance from "../api/axios";
 
-const MoviePage = () => {
-  const [selectedPlatform, setSelectedPlatform] = useState("");
-  const [orderBy, setOrderBy] = useState("Relevance");
+interface Movie {
+  id: string;
+  title: string;
+  poster: string;
+}
 
-  const platforms = ["PC", "PlayStation", "Xbox", "iOS", "Android"];
-  const orderOptions = ["Relevance", "Popularity", "Rating"];
-  const movies = [
-    { id: 1, title: "Game 1", image: "/path-to-image1.jpg" },
-    { id: 2, title: "Game 2", image: "/path-to-image2.jpg" },
-    { id: 3, title: "Game 3", image: "/path-to-image3.jpg" },
-    { id: 4, title: "Game 4", image: "/path-to-image4.jpg" },
-  ];
+const fetchMovies = async (genre: string): Promise<Movie[]> => {
+  const response = await axiosInstance.get("", { params: { s: genre } });
+  if (response.data.Response === "True") {
+    return response.data.Search.map((movie: any) => ({
+      id: movie.imdbID,
+      title: movie.Title,
+      poster: movie.Poster,
+    }));
+  } else {
+    throw new Error(response.data.Error || "No movies found.");
+  }
+};
+
+const MoviePage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const selectedGenre = useSelector(
+    (state: RootState) => state.movies.selectedGenre
+  );
+
+  const genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"];
+
+  const {
+    data: movies = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(["movies", selectedGenre], () => fetchMovies(selectedGenre), {
+    enabled: !!selectedGenre,
+    staleTime: 20000,
+  });
 
   return (
     <div className="bg-black text-white min-h-screen p-6">
-      {/* Page Header */}
+      {/* Genre Selector */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Adventure Games</h1>
-        <div className="flex gap-4">
-          {/* Platform Filter */}
-          <div className="relative">
-            <select
-              value={selectedPlatform}
-              onChange={(e) => setSelectedPlatform(e.target.value)}
-              className="bg-[#191919] outline-none text-white px-4 py-2 rounded-md w-full cursor-pointer"
-            >
-              <option value="">Platform</option>
-              {platforms.map((platform) => (
-                <option key={platform} value={platform}>
-                  {platform}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Order By Filter */}
-          <div className="relative">
-            <select
-              value={orderBy}
-              onChange={(e) => setOrderBy(e.target.value)}
-              className="bg-[#191919] outline-none text-white px-4 py-2 rounded-md w-full cursor-pointer"
-            >
-              {orderOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <select
+          value={selectedGenre}
+          onChange={(e) => dispatch(setGenre(e.target.value))}
+          className="bg-[#181818] text-white px-4 py-2 rounded-md"
+        >
+          {genres.map((genre) => (
+            <option key={genre} value={genre}>
+              {genre}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Movie Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {movies.map((movie) => (
-          <div
-            key={movie.id}
-            className="bg-gray-800 rounded-lg overflow-hidden shadow-lg"
-          >
-            <img
-              src={movie.image}
-              alt={movie.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-lg font-bold">{movie.title}</h3>
+      {/* Dynamic Genre Heading */}
+      <h2 className="text-3xl font-semibold mb-6">
+        {selectedGenre ? `${selectedGenre} Movies` : "Select a Genre"}
+      </h2>
+
+      {/* Movies Grid */}
+      {isLoading ? (
+        <p>Loading movies...</p>
+      ) : isError ? (
+        <p className="text-red-500">{(error as Error).message}</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {movies.map((movie) => (
+            <div
+              key={movie.id}
+              className="bg-[#181818] rounded-lg overflow-hidden shadow-lg"
+            >
+              <img
+                src={movie.poster !== "N/A" ? movie.poster : "/placeholder.png"}
+                alt={movie.title}
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-lg font-bold">{movie.title}</h3>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

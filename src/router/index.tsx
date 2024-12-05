@@ -5,6 +5,9 @@ import MoviePage from "../pages/MoviePage";
 import NotFoundPage from "../pages/NotFoundPage";
 import MainLayout from "../layouts/MainLayout";
 import LearnMorePage from "../pages/LearnMorePage";
+import FavoritesPage from "../pages/FavoritesPage";
+import ProfilePage from "../pages/ProfilePage";
+import SettingsPage from "../pages/SettingsPage";
 
 const AppRouter: React.FC = () => {
   return (
@@ -17,6 +20,9 @@ const AppRouter: React.FC = () => {
         {/* Routes wrapped in MainLayout */}
         <Route element={<MainLayout />}>
           <Route path="/movies" element={<MoviePage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* 404 Not Found Page */}
